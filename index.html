@@ -733,7 +733,7 @@
                     <div class="form-group"><label>Current Location</label><select id="vLocation"><option value="Dispatch Lot">Dispatch Lot</option><option value="On the road">On the road</option><option value="Pam (Ridesource, DMV)">Pam (Ridesource, DMV)</option><option value="Shop">Shop</option><option value="Paint">Paint</option><option value="Glass">Glass</option></select></div>
                     <div class="form-group"><label>Shop Status</label>
                         <select id="vShopStatus" onchange="togglePartsFields()">
-			    <option value="On the Road">On the Road</option>
+		
                             <option value="Reported">Reported</option>
                             <option value="Ready for Pickup">Ready for Pickup</option>
                             <option value="Received">Received</option>
@@ -746,6 +746,12 @@
                         </select>
                     </div>
                 </div>
+<div class="form-group">
+    <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+        <input type="checkbox" id="vOnTheRoad" style="width: auto; margin: 0;">
+        <span>On the Road (tracked separately from status)</span>
+    </label>
+</div>
                 <div id="partsSection"><div class="form-group"><label>Date Parts Ordered</label><input type="date" id="vPartsOrdered"></div><div class="form-group" style="margin-bottom:0;"><label>Estimated Delivery (ETA)</label><input type="date" id="vPartsEta"></div></div>
                 <div class="form-group"><label>Date In</label><input type="date" id="vDate" required></div>
                 
@@ -769,21 +775,26 @@
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxVv34BESHIyT_-HohJ-gUc4a2QdQdwHOzEmxFtr1WFxjwV620spd3KnjyHd8If5HSfYQ/exec"; 
         let fleetData = [], collapsedCards = new Set();
         
-        const COLUMN_STATUSES = { 
-            on_the_road: ["On the Road"],
-            complaints: ["Reported"], 
-            ready:      ["Ready for Pickup"],
-            parts:      ["Awaiting part order", "Assessment"],
-            progress:   ["Received", "Parts Received - Waiting for Technician", "Repair in Progress"], 
-            returned:   ["Complete"] 
-        };
-
-        function statusToCol(s) { 
-            for (const [c, sts] of Object.entries(COLUMN_STATUSES)) { 
-                if (sts.includes(s)) return c; 
-            } 
-            return 'complaints'; 
-        }
+        const  COLUMN_STATUSES = { 
+    				on_the_road: [],  // Empty - filled by onTheRoad boolean, not status
+    				complaints: ["Reported"],
+	       ready:      ["Ready for Pickup"],
+ 				   parts:      ["Awaiting part order", "Assessment"],
+		    progress:   ["Received", "Parts Received - Waiting for Technician", "Repair in Progress"], 
+		    returned:   ["Complete"] 
+}
+        function statusToCol(status, onTheRoad) {
+    // If onTheRoad flag is true, route to on_the_road column
+    if (onTheRoad === true) {
+        return 'on_the_road';
+    }
+    
+    // Otherwise use normal status-based routing
+    for (const [c, sts] of Object.entries(COLUMN_STATUSES)) { 
+        if (sts.includes(status)) return c; 
+    } 
+    return 'complaints'; 
+}
 
         // ==================== GLOBAL COLLAPSE LOGIC ====================
         function toggleGlobalCollapse() {
@@ -1000,78 +1011,134 @@
         function getClosestCard(col, y) { const cards = [...col.querySelectorAll('.vehicle-card:not(.dragging)')]; let closest = null, co = Number.NEGATIVE_INFINITY; for (const c of cards) { const b = c.getBoundingClientRect(), o = y - b.top - b.height / 2; if (o < 0 && o > co) { co = o; closest = c; } } return closest; }
         function onDragOver(e) { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; const cc = e.target.closest('.column-content'); if (!cc) return; document.querySelectorAll('.drag-over-column').forEach(e => e.classList.remove('drag-over-column')); cc.closest('.kanban-column').classList.add('drag-over-column'); const cl = getClosestCard(cc, e.clientY); if (currentIndicator) currentIndicator.remove(); const ind = document.createElement('div'); ind.className = 'drop-indicator'; currentIndicator = ind; if (cl) cc.insertBefore(ind, cl); else cc.appendChild(ind); }
         function onDrop(e) {
-            e.preventDefault();
-            const cc = e.target.closest('.column-content');
-            let draggedIndexes;
-            try { draggedIndexes = JSON.parse(e.dataTransfer.getData('text/plain')); } catch (err) { clearIndicators(); return; }
-            if (!cc || !draggedIndexes || draggedIndexes.length === 0) { clearIndicators(); return; }
+    e.preventDefault();
+    const cc = e.target.closest('.column-content');
+    let draggedIndexes;
+    try { draggedIndexes = JSON.parse(e.dataTransfer.getData('text/plain')); } catch (err) { clearIndicators(); return; }
+    if (!cc || !draggedIndexes || draggedIndexes.length === 0) { clearIndicators(); return; }
 
-            const targetColType = cc.dataset.col;
-            const firstVeh = fleetData.find(v => v.rowIndex == draggedIndexes[0]);
-            if (!firstVeh) { clearIndicators(); return; }
-            const sc = statusToCol(firstVeh.shopStatus || "Reported", "On The Road");
+    const targetColType = cc.dataset.col;
+    const firstVeh = fleetData.find(v => v.rowIndex == draggedIndexes[0]);
+    if (!firstVeh) { clearIndicators(); return; }
+    const sc = statusToCol(firstVeh.shopStatus || "Reported", firstVeh.onTheRoad);
 
-            if (sc === targetColType) {
-                if (draggedEl && currentIndicator) cc.insertBefore(draggedEl, currentIndicator);
-                else if (draggedEl) cc.appendChild(draggedEl);
-                if (draggedEl) { draggedEl.classList.remove('dragging'); draggedEl.style.opacity = ''; }
-                clearIndicators();
-                persistColumnOrder(cc);
-            } else {
-                clearIndicators();
-                const possibleStatuses = COLUMN_STATUSES[targetColType];
+    if (sc === targetColType) {
+        if (draggedEl && currentIndicator) cc.insertBefore(draggedEl, currentIndicator);
+        else if (draggedEl) cc.appendChild(draggedEl);
+        if (draggedEl) { draggedEl.classList.remove('dragging'); draggedEl.style.opacity = ''; }
+        clearIndicators();
+        persistColumnOrder(cc);
+    } else {
+        clearIndicators();
+        
+        // ===== NEW LOGIC =====
+        // If dragging FROM "on_the_road" column, uncheck the flag automatically
+        // Don't show status picker popup
+        if (sc === 'on_the_road') {
+            const user = getUsername();
+            showToast(`⟳ Unchecking "On the Road" and moving to ${targetColType}...`);
+            
+            const updates = draggedIndexes.map(idx => {
+                const v = fleetData.find(f => f.rowIndex === idx);
+                if (!v) return Promise.resolve();
                 
-                // --- LOGGING THE MOVE ---
-                const moveUser = getUsername();
+                // Uncheck the onTheRoad flag
+                v.onTheRoad = false;
                 
-                const applyStatusToAll = (newStatus) => {
-                    const user = getUsername();
-                    showToast(`⟳ Moving ${draggedIndexes.length} tickets to ${newStatus}...`);
-                    const updates = draggedIndexes.map(idx => {
-                        const v = fleetData.find(f => f.rowIndex === idx);
-                        if (!v) return Promise.resolve();
-                        
-                        v.shopStatus = newStatus; 
-
-                        const payload = {
-                            action: 'update',
-                            rowIndex: v.rowIndex,
-                            user: user,
-                            id: v.id,
-                            status: v.status,
-                            issue: v.issue,
-                            date: v.date,
-                            shopStatus: newStatus,
-                            location: v.location,
-                            partsOrdered: v.partsOrdered || '',
-                            partsEta: v.partsEta || '',
-                            priority: v.priority || 'Normal',
-                            homeLocation: v.homeLocation || '',
-                            notes: v.notes || '',
-                            requestedBy: v.requestedBy || '',
-                            vehicleType: v.vehicleType || ''
-                        };
-                        return fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify(payload) })
-                            .catch(err => {
-                                console.error("Drag update failed:", err);
-                                showToast("❌ Failed to update - check connection");
-                            });
-                    });
-
-                    Promise.all(updates).then(() => {
-                        showToast(`✓ Moved by ${user}`);
-                        setTimeout(fetchSheetData, 800);
-                    }).catch(err => console.error("Promise.all error:", err));
-                    renderBoard(); 
-                };
-
-                if (possibleStatuses.length === 1) {
-                    applyStatusToAll(possibleStatuses[0]);
-                } else {
-                    showStatusPickerMulti(firstVeh.id, possibleStatuses, applyStatusToAll);
+                // Get the first possible status for target column
+                const targetStatus = COLUMN_STATUSES[targetColType][0];
+                if (targetStatus) {
+                    v.shopStatus = targetStatus;
                 }
-            }
+                
+                const payload = {
+                    action: 'update',
+                    rowIndex: v.rowIndex,
+                    user: user,
+                    id: v.id,
+                    status: v.status,
+                    issue: v.issue,
+                    date: v.date,
+                    shopStatus: targetStatus || v.shopStatus,
+                    location: v.location,
+                    partsOrdered: v.partsOrdered || '',
+                    partsEta: v.partsEta || '',
+                    priority: v.priority || 'Normal',
+                    homeLocation: v.homeLocation || '',
+                    notes: v.notes || '',
+                    requestedBy: v.requestedBy || '',
+                    vehicleType: v.vehicleType || '',
+                    onTheRoad: false  // ← Uncheck flag
+                };
+                return fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify(payload) })
+                    .catch(err => {
+                        console.error("Drag update failed:", err);
+                        showToast("❌ Failed to update - check connection");
+                    });
+            });
+
+            Promise.all(updates).then(() => {
+                showToast(`✓ Moved by ${user}`);
+                setTimeout(fetchSheetData, 800);
+            }).catch(err => console.error("Promise.all error:", err));
+            renderBoard(); 
+            return;  // ← EXIT HERE - don't show popup
         }
+        // ===== END NEW LOGIC =====
+
+        const possibleStatuses = COLUMN_STATUSES[targetColType];
+        
+        const moveUser = getUsername();
+        
+        const applyStatusToAll = (newStatus) => {
+            const user = getUsername();
+            showToast(`⟳ Moving ${draggedIndexes.length} tickets to ${newStatus}...`);
+            const updates = draggedIndexes.map(idx => {
+                const v = fleetData.find(f => f.rowIndex === idx);
+                if (!v) return Promise.resolve();
+                
+                v.shopStatus = newStatus; 
+
+                const payload = {
+                    action: 'update',
+                    rowIndex: v.rowIndex,
+                    user: user,
+                    id: v.id,
+                    status: v.status,
+                    issue: v.issue,
+                    date: v.date,
+                    shopStatus: newStatus,
+                    location: v.location,
+                    partsOrdered: v.partsOrdered || '',
+                    partsEta: v.partsEta || '',
+                    priority: v.priority || 'Normal',
+                    homeLocation: v.homeLocation || '',
+                    notes: v.notes || '',
+                    requestedBy: v.requestedBy || '',
+                    vehicleType: v.vehicleType || '',
+                    onTheRoad: v.onTheRoad  // ← Preserve onTheRoad flag
+                };
+                return fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify(payload) })
+                    .catch(err => {
+                        console.error("Drag update failed:", err);
+                        showToast("❌ Failed to update - check connection");
+                    });
+            });
+
+            Promise.all(updates).then(() => {
+                showToast(`✓ Moved by ${user}`);
+                setTimeout(fetchSheetData, 800);
+            }).catch(err => console.error("Promise.all error:", err));
+            renderBoard(); 
+        };
+
+        if (possibleStatuses.length === 1) {
+            applyStatusToAll(possibleStatuses[0]);
+        } else {
+            showStatusPickerMulti(firstVeh.id, possibleStatuses, applyStatusToAll);
+        }
+    }
+}
         function persistColumnOrder(cc) { 
             const cards = cc.querySelectorAll('.vehicle-card'), items = []; 
             cards.forEach((c, i) => { 
@@ -1156,7 +1223,7 @@
                 if (!v.id) return;
                 if (st && !v.id.toLowerCase().includes(st) && !(v.issue || '').toLowerCase().includes(st)) return;
 
-                const colKey = statusToCol(v.shopStatus || "Reported");
+		const colKey = statusToCol(v.shopStatus || "Reported", v.onTheRoad);
                 const idKey = v.id.trim().toUpperCase();
 
                 if (!mergedData[colKey]) mergedData[colKey] = {};
@@ -1180,27 +1247,23 @@
             }
 
             for (const col of Object.keys(groups)) {
-                if (col === 'on_the_road') {
-                    // Sort by inspection date for "On the road" column
-                    groups[col].sort((a, b) => {
-                        const dateA = a.inspectionDate ? new Date(a.inspectionDate) : new Date('9999-12-31');
-                        const dateB = b.inspectionDate ? new Date(b.inspectionDate) : new Date('9999-12-31');
-                        return dateA - dateB;
-                    });
-                } else {
-                    groups[col].sort((a, b) => {
-                        const pa = getPrioVal(a.priority);
-                        const pb = getPrioVal(b.priority);
-                        if (pa !== pb) return pa - pb; 
-                        const aHas = a.sortOrder && a.sortOrder > 0;
-                        const bHas = b.sortOrder && b.sortOrder > 0;
-                        if (aHas && bHas) return a.sortOrder - b.sortOrder;
-                        if (aHas && !bHas) return -1;
-                        if (!aHas && bHas) return 1;
-                        return (b.rowIndex || 0) - (a.rowIndex || 0);
-                    });
-                }
-            }
+    if (col === 'on_the_road') {
+        // Sort "On the Road" by inspection date
+        groups[col].sort((a, b) => {
+            const dateA = a.inspectionDate ? new Date(a.inspectionDate) : new Date('9999-12-31');
+            const dateB = b.inspectionDate ? new Date(b.inspectionDate) : new Date('9999-12-31');
+            return dateA - dateB;
+        });
+    } else {
+        // Sort other columns by priority
+        groups[col].sort((a, b) => {
+            const pa = getPrioVal(a.priority);
+            const pb = getPrioVal(b.priority);
+            if (pa !== pb) return pa - pb; 
+            // ... more sort logic (keep existing) ...
+        });
+    }
+}
 
             let animIdx = 0;
             for (const [colKey, vehicles] of Object.entries(groups)) {
@@ -1416,7 +1479,8 @@
                     document.getElementById('vNotes').value = v.notes || "";
                     document.getElementById('vRequestedBy').value = v.requestedBy || "";
                     document.getElementById('vType').value = v.vehicleType || "";
-                    
+                    document.getElementById('vOnTheRoad').checked = v.onTheRoad === true;
+
                     document.getElementById('vHistory').value = v.history || "";
                     const hist = parseHistory(v.history);
                     renderHistoryLog(hist);
@@ -1455,6 +1519,7 @@
             const requestedBy = document.getElementById('vRequestedBy').value;
             const vehicleType = document.getElementById('vType').value;
             const rawHist = document.getElementById('vHistory').value;
+		const onTheRoad = document.getElementById('vOnTheRoad').checked;
 
             // --- AUDIT LOGIC ---
             let historyArr = parseHistory(rawHist);
@@ -1475,12 +1540,12 @@
             const user = getUsername();
             
             const p = { 
-                action: m === 'edit' ? 'update' : 'add', 
-                rowIndex: oldRi, 
-                user: user,
-                id, status, issue, date, inspectionDate: document.getElementById('vInspectionDate').value, shopStatus, location, partsOrdered, partsEta, priority, homeLocation, notes, requestedBy, vehicleType,
-                history: JSON.stringify(historyArr)
-            }; 
+    action: m === 'edit' ? 'update' : 'add', 
+    rowIndex: oldRi, 
+    user: user,
+    id, status, issue, date, inspectionDate: document.getElementById('vInspectionDate').value, shopStatus, location, partsOrdered, partsEta, priority, homeLocation, notes, requestedBy, vehicleType, onTheRoad,  // ← ADD onTheRoad
+    history: JSON.stringify(historyArr)
+};
 
             b.innerText = "SAVING…"; b.disabled = true; 
             fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify(p) })
