@@ -902,6 +902,7 @@
 
                 <div class="modal-actions">
                     <button type="button" id="deleteBtn" class="controls btn-danger" style="display:none;" onclick="deleteCurrent()">DELETE</button>
+                    <button type="button" id="closeRoadBtn" class="btn-close-ticket" style="display:none;" onclick="closeAndReturnToRoadFromModal()">✓ CLOSE & RETURN TO ROAD</button>
                     <button type="button" id="printBtn" class="btn-outline" style="display:none;" onclick="printServiceTicket(parseInt(document.getElementById('targetRowIndex').value))">🖨 PRINT</button>
                     <button type="button" class="btn-outline" onclick="closeModal()">CANCEL</button>
                     <button type="submit" class="btn-primary" id="saveBtn">SAVE</button>
@@ -1527,12 +1528,6 @@
                     if (v.shopStatus === 'Dispatched to Shop') actualPc = 'pill-dispatched';
                     if (v.shopStatus === 'Ready for Delivery') actualPc = 'pill-progress';
 
-                    // Close ticket button for Returned column
-                    let closeBtn = '';
-                    if (colKey === 'returned') {
-                        closeBtn = `<button class="btn-close-ticket" onclick="event.stopPropagation(); closeAndReturnToRoad(${JSON.stringify(allRowIndexes)})">✓ Close & Return to Road</button>`;
-                    }
-
                     // Dispatched to Shop red styling
                     let dispatchClass = '';
                     if (v.shopStatus === 'Dispatched to Shop') dispatchClass = ' dispatched-to-shop';
@@ -1569,7 +1564,6 @@
                             ${streamNotes}
                             ${colKey !== 'on_the_road' ? ticketsHtml : ''}
                             ${ph}
-                            ${closeBtn}
                         </div>`;
                     
                     tc.appendChild(card);
@@ -1648,11 +1642,13 @@
                 document.getElementById('historyList').innerHTML = '<div style="color:var(--text-muted);text-align:center;">New ticket - no history</div>';
                 d.style.display = 'none';
                 document.getElementById('printBtn').style.display = 'none';
+                document.getElementById('closeRoadBtn').style.display = 'none';
                 togglePartsFields();
             } else {
                 document.getElementById('modalTitle').innerText = "EDIT UNIT";
                 d.style.display = 'block';
                 document.getElementById('printBtn').style.display = 'block';
+                document.getElementById('closeRoadBtn').style.display = 'none';
                 const v = fleetData.find(v => v.rowIndex === ri);
                 if (v) {
                     document.getElementById('targetRowIndex').value = v.rowIndex;
@@ -1682,6 +1678,12 @@
                         document.getElementById('lastUpdatedBy').textContent = `Last: ${last.user}`;
                     } else {
                         document.getElementById('lastUpdatedBy').textContent = '';
+                    }
+
+                    // Show close button for vehicles in the Returned to Dispatch column
+                    const colKey = statusToCol(v.shopStatus || 'Reported', v.onTheRoad);
+                    if (colKey === 'returned') {
+                        document.getElementById('closeRoadBtn').style.display = 'block';
                     }
 
                     togglePartsFields();
@@ -1831,6 +1833,16 @@
         }
 
         // ==================== CLOSE & RETURN TO ROAD ====================
+        function closeAndReturnToRoadFromModal() {
+            const ri = parseInt(document.getElementById('targetRowIndex').value);
+            const v = fleetData.find(f => f.rowIndex === ri);
+            if (!v) return;
+            const id = v.id.trim().toUpperCase();
+            const allIndexes = fleetData.filter(f => f.id.trim().toUpperCase() === id).map(f => f.rowIndex);
+            closeModal();
+            closeAndReturnToRoad(allIndexes);
+        }
+
         function closeAndReturnToRoad(rowIndexes) {
             if (!confirm('Close this ticket and return vehicle to "On the Road"?')) return;
             const user = getUsername();
