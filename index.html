@@ -1849,8 +1849,8 @@
                     user: user,
                     id: v.id,
                     status: 'Operational',
-                    issue: v.issue,
-                    date: v.date,
+                    issue: '',
+                    date: new Date().toISOString().split('T')[0],
                     inspectionDate: v.inspectionDate || '',
                     shopStatus: 'Reported',
                     location: 'On the Road',
@@ -1862,7 +1862,7 @@
                     requestedBy: '',
                     vehicleType: v.vehicleType || '',
                     onTheRoad: true,
-                    history: JSON.stringify(hist)
+                    history: ''
                 };
                 return fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify(payload) })
                     .catch(err => {
