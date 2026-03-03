@@ -551,6 +551,142 @@
         body.light-mode .swiper-arrow { background: #fff; border-color: #d1d5db; color: #111; }
         body.light-mode .swiper-arrow:active { background: #e5e7eb; }
         body.light-mode .swiper-dot:not(.active) { opacity: 0.25; }
+
+        /* ===== SHOP NOTES IN STREAM ===== */
+        .card-notes-stream {
+            margin-top: 0.4rem;
+            padding: 0.4rem 0.6rem;
+            background: rgba(255,255,255,0.03);
+            border-radius: 4px;
+            font-size: 0.75rem;
+            color: #a1a1aa;
+            font-style: italic;
+            border-left: 2px solid var(--c-shop);
+            white-space: pre-line;
+            max-height: 60px;
+            overflow: hidden;
+            line-height: 1.4;
+        }
+        body.light-mode .card-notes-stream { background: rgba(0,0,0,0.03); color: #555; }
+
+        /* ===== RIDESOURCE DATE IN STREAM ===== */
+        .card-rides-date {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.65rem;
+            font-weight: 700;
+            color: #a78bfa;
+            background: rgba(167,139,250,0.12);
+            padding: 1px 6px;
+            border-radius: 3px;
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+        }
+
+        /* ===== DISPATCHED TO SHOP (red, like urgent) ===== */
+        .pill-dispatched {
+            background: rgba(239,68,68,0.15);
+            color: #ef4444;
+        }
+        .vehicle-card.dispatched-to-shop {
+            border-color: var(--c-urgent);
+            box-shadow: inset 0 0 0 1px rgba(239,68,68,0.15), 0 0 12px rgba(239,68,68,0.08);
+        }
+
+        /* ===== LTD LOCATION STYLES ===== */
+        .card-location.loc-ltd {
+            color: #f59e0b;
+            font-weight: 700;
+        }
+        .pill-ltd {
+            background: rgba(245,158,11,0.15);
+            color: #f59e0b;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.6rem;
+            font-weight: 800;
+            padding: 1px 5px;
+            border-radius: 3px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* ===== COLLAPSED BUT STATUS VISIBLE ===== */
+        .vehicle-card.collapsed .card-body { max-height: 0; padding: 0 0.8rem; opacity: 0; }
+        .vehicle-card.collapsed .card-collapsed-status {
+            display: inline-flex;
+            max-height: 30px;
+            opacity: 1;
+        }
+        .card-collapsed-status {
+            display: none;
+            align-items: center;
+            gap: 0.4rem;
+            margin-left: 0.3rem;
+        }
+        .card-collapsed-status .card-pill {
+            font-size: 0.55rem;
+            padding: 0.1rem 0.4rem;
+        }
+        .card-collapsed-status .card-location {
+            font-size: 0.6rem;
+        }
+
+        /* ===== CLOSE/RETURN BUTTON FOR RETURNED COLUMN ===== */
+        .btn-close-ticket {
+            background: rgba(74,222,128,0.12);
+            border: 1px solid rgba(74,222,128,0.3);
+            color: var(--c-done);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.6rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 3px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all var(--transition);
+            margin-top: 0.4rem;
+        }
+        .btn-close-ticket:hover { background: rgba(74,222,128,0.25); }
+
+        /* ===== PRINTABLE SERVICE TICKET ===== */
+        .print-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--modal-bg); display: flex; justify-content: center;
+            align-items: flex-start; z-index: 200; overflow-y: auto;
+            backdrop-filter: blur(12px);
+        }
+        .print-ticket {
+            background: #fff; color: #111; width: 8.5in; min-height: 11in;
+            padding: 0.75in; margin: 1rem auto; box-shadow: 0 4px 24px rgba(0,0,0,0.3);
+            font-family: 'Outfit', sans-serif; position: relative;
+        }
+        .print-ticket h2 {
+            font-size: 1.4rem; text-transform: uppercase; letter-spacing: 2px;
+            border-bottom: 3px solid #111; padding-bottom: 0.5rem; margin-bottom: 1rem;
+            color: #111;
+        }
+        .print-ticket .pt-row { display: flex; gap: 1rem; margin-bottom: 0.5rem; }
+        .print-ticket .pt-field { flex: 1; }
+        .print-ticket .pt-label { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; color: #666; letter-spacing: 0.5px; }
+        .print-ticket .pt-value { font-size: 1rem; font-weight: 500; border-bottom: 1px solid #ddd; padding: 2px 0 4px; min-height: 1.4em; }
+        .print-ticket .pt-notes { margin-top: 1rem; border: 1px solid #ddd; border-radius: 4px; padding: 0.5rem; min-height: 120px; white-space: pre-line; font-size: 0.9rem; }
+        .print-ticket .pt-history { margin-top: 1rem; font-size: 0.8rem; }
+        .print-ticket .pt-history table { width: 100%; border-collapse: collapse; }
+        .print-ticket .pt-history th, .print-ticket .pt-history td { text-align: left; padding: 4px 8px; border-bottom: 1px solid #eee; }
+        .print-ticket .pt-history th { font-size: 0.7rem; text-transform: uppercase; color: #666; }
+        .print-actions {
+            position: sticky; top: 0; background: var(--bg-column); padding: 0.8rem; display: flex;
+            justify-content: center; gap: 0.5rem; z-index: 5; border-bottom: 1px solid var(--border);
+        }
+
+        @media print {
+            body * { visibility: hidden !important; }
+            .print-overlay, .print-overlay * { visibility: visible !important; }
+            .print-overlay { position: absolute; top: 0; left: 0; background: #fff; }
+            .print-actions { display: none !important; }
+            .print-ticket { box-shadow: none; margin: 0; }
+        }
     </style>
 </head>
 <body>
@@ -563,6 +699,7 @@
             <button class="btn-bulletin" id="bulletinToggle" onclick="toggleBulletin()">📌 Board <span class="badge-count" id="msgCount" style="display:none">0</span></button>
             <button class="btn-outline" onclick="toggleTheme()">◑ Theme</button>
             <button class="btn-outline" onclick="toggleWallboardMode()">▣ Wall</button>
+            <button class="btn-outline" onclick="printServiceTicketFromSearch()">🖨 Print</button>
         </div>
     </header>
     <div class="kpi-container">
@@ -730,19 +867,20 @@
                 <div class="form-group"><label>Notes / Updates</label><textarea id="vNotes" rows="3" placeholder="Enter updates here…"></textarea></div>
 
                 <div class="form-row">
-                    <div class="form-group"><label>Current Location</label><select id="vLocation"><option value="Dispatch Lot">Dispatch Lot</option><option value="On the road">On the road</option><option value="Pam (Ridesource, DMV)">Pam (Ridesource, DMV)</option><option value="Shop">Shop</option><option value="Paint">Paint</option><option value="Glass">Glass</option></select></div>
+                    <div class="form-group"><label>Current Location</label><select id="vLocation"><option value="On the Road" selected>On the Road</option><option value="Dispatch Lot">Dispatch Lot</option><option value="Pam (Ridesource, DMV)">Pam (Ridesource, DMV)</option><option value="Shop">Shop</option><option value="LTD Tires">LTD Tires</option><option value="LTD Mechanic">LTD Mechanic</option><option value="Paint">Paint</option><option value="Glass">Glass</option></select></div>
                     <div class="form-group"><label>Shop Status</label>
                         <select id="vShopStatus" onchange="togglePartsFields()">
 		
                             <option value="Reported">Reported</option>
                             <option value="Ready for Pickup">Ready for Pickup</option>
+                            <option value="Dispatched to Shop">Dispatched to Shop</option>
                             <option value="Received">Received</option>
                             <option value="Assessment">Assessment</option>
                             <option value="Repair in Progress">Repair in Progress</option>
                             <option value="Awaiting part order">Awaiting part order</option>
                             <option value="Parts Received - Waiting for Technician">Parts Received - Waiting for Technician</option>
-                            <option value="Complete">Complete</option>
                             <option value="Ready for Delivery">Ready for Delivery</option>
+                            <option value="Complete">Complete</option>
                         </select>
                     </div>
                 </div>
@@ -764,6 +902,7 @@
 
                 <div class="modal-actions">
                     <button type="button" id="deleteBtn" class="controls btn-danger" style="display:none;" onclick="deleteCurrent()">DELETE</button>
+                    <button type="button" id="printBtn" class="btn-outline" style="display:none;" onclick="printServiceTicket(parseInt(document.getElementById('targetRowIndex').value))">🖨 PRINT</button>
                     <button type="button" class="btn-outline" onclick="closeModal()">CANCEL</button>
                     <button type="submit" class="btn-primary" id="saveBtn">SAVE</button>
                 </div>
@@ -775,13 +914,13 @@
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxVv34BESHIyT_-HohJ-gUc4a2QdQdwHOzEmxFtr1WFxjwV620spd3KnjyHd8If5HSfYQ/exec"; 
         let fleetData = [], collapsedCards = new Set();
         
-        const  COLUMN_STATUSES = { 
+        const  COLUMN_STATUSES = {
     				on_the_road: [],  // Empty - filled by onTheRoad boolean, not status
     				complaints: ["Reported"],
-	       ready:      ["Ready for Pickup"],
+	       ready:      ["Ready for Pickup", "Dispatched to Shop"],
  				   parts:      ["Awaiting part order", "Assessment"],
-		    progress:   ["Received", "Parts Received - Waiting for Technician", "Repair in Progress"], 
-		    returned:   ["Complete"] 
+		    progress:   ["Received", "Parts Received - Waiting for Technician", "Repair in Progress", "Ready for Delivery"],
+		    returned:   ["Complete"]
 }
         function statusToCol(status, onTheRoad) {
     // If onTheRoad flag is true, route to on_the_road column
@@ -1333,14 +1472,16 @@
                     ticketsHtml += '</div>';
 
                     let ph = '';
-                    if (sp) { 
-                        ph = `<div class="parts-info-block"><div class="parts-row"><span class="parts-label">Ordered</span><span class="parts-val">${formatDate(v.partsOrdered) || '—'}</span></div><div class="parts-row"><span class="parts-label">ETA</span><span class="parts-val eta">${formatDate(v.partsEta) || '—'}</span></div></div>`; 
+                    if (sp) {
+                        ph = `<div class="parts-info-block" style="cursor:pointer;" onclick="event.stopPropagation();this.querySelector('.parts-detail').style.display = this.querySelector('.parts-detail').style.display === 'none' ? 'block' : 'none';">
+                            <div class="parts-row"><span class="parts-label">📦 Parts / ETA</span><span class="parts-val" style="font-size:0.6rem;color:var(--text-muted);">tap to toggle</span></div>
+                            <div class="parts-detail"><div class="parts-row"><span class="parts-label">Ordered</span><span class="parts-val">${formatDate(v.partsOrdered) || '—'}</span></div><div class="parts-row"><span class="parts-label">ETA</span><span class="parts-val eta">${formatDate(v.partsEta) || '—'}</span></div></div>
+                        </div>`;
                     }
                     
                     const allRowIndexes = v.tickets.map(t => t.rowIndex);
                     const ck = String(v.id + '-' + colKey + '-' + animIdx), ic = collapsedCards.has(ck);
                     const card = document.createElement('div');
-                    card.className = `vehicle-card ${bc}${prioClass} ${ic ? 'collapsed' : ''}`;
                     card.style.animationDelay = `${Math.min(animIdx * 0.025, 0.3)}s`;
                     card.dataset.cardKey = ck; 
                     card.draggable = colKey !== 'on_the_road' && !isMobile();
@@ -1358,6 +1499,49 @@
                         inspectionBadge = `<span class="inspection-date-badge" style="background:rgba(167,139,250,0.15);color:#a78bfa;">${v.inspectionDate} (${daysUntil}d)</span>`;
                     }
 
+                    // Ridesource date between status & location
+                    let ridesDateHtml = '';
+                    if (v.inspectionDate) {
+                        const rd = new Date(v.inspectionDate + 'T00:00:00');
+                        const rdStr = rd.toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'});
+                        ridesDateHtml = `<span class="card-rides-date">🚐 Rides: ${rdStr}</span>`;
+                    }
+
+                    // Location class for LTD styling
+                    const locVal = v.location || 'On the Road';
+                    const isLtd = locVal.startsWith('LTD');
+                    const locClass = isLtd ? 'card-location loc-ltd' : 'card-location';
+                    const locIcon = isLtd ? '🔶' : '📍';
+
+                    // Shop notes in the stream (latest note from any ticket)
+                    let streamNotes = '';
+                    const allNotes = v.tickets.map(t => t.notes).filter(n => n && n.trim());
+                    if (allNotes.length > 0) {
+                        const latestNote = allNotes[allNotes.length - 1];
+                        const truncated = latestNote.length > 120 ? latestNote.substring(0, 120) + '…' : latestNote;
+                        streamNotes = `<div class="card-notes-stream">📝 ${escapeHtml(truncated)}</div>`;
+                    }
+
+                    // Pill class for Dispatched to Shop
+                    let actualPc = pc;
+                    if (v.shopStatus === 'Dispatched to Shop') actualPc = 'pill-dispatched';
+                    if (v.shopStatus === 'Ready for Delivery') actualPc = 'pill-progress';
+
+                    // Close ticket button for Returned column
+                    let closeBtn = '';
+                    if (colKey === 'returned') {
+                        closeBtn = `<button class="btn-close-ticket" onclick="event.stopPropagation(); closeAndReturnToRoad(${JSON.stringify(allRowIndexes)})">✓ Close & Return to Road</button>`;
+                    }
+
+                    // Dispatched to Shop red styling
+                    let dispatchClass = '';
+                    if (v.shopStatus === 'Dispatched to Shop') dispatchClass = ' dispatched-to-shop';
+
+                    // Collapsed status pill for when card is collapsed
+                    let collapsedStatus = `<span class="card-collapsed-status"><span class="card-pill ${actualPc}">${v.shopStatus || ''}</span></span>`;
+
+                    card.className = `vehicle-card ${bc}${prioClass}${dispatchClass} ${ic ? 'collapsed' : ''}`;
+
                     card.innerHTML = `
                         <div class="card-top-bar" onclick="toggleCard('${ck}',this.querySelector('.collapse-toggle'))">
                             <div class="card-id-group">
@@ -1369,6 +1553,7 @@
                                 ${prioBadge}
                                 ${db}
                                 ${inspectionBadge}
+                                ${collapsedStatus}
                             </div>
                             <div class="card-right">
                                 <button class="collapse-toggle" onclick="event.stopPropagation();toggleCard('${ck}',this);">${CHEV}</button>
@@ -1376,12 +1561,15 @@
                         </div>
                         <div class="card-body">
                             <div class="card-meta">
-                                <span class="card-pill ${pc}">${v.shopStatus || ''}</span>
-                                <div class="card-location">📍 ${v.location || 'Dispatch Lot'}</div>
+                                <span class="card-pill ${actualPc}">${v.shopStatus || ''}</span>
+                                ${ridesDateHtml}
+                                <div class="${locClass}">${locIcon} ${locVal}</div>
                             </div>
                             <div class="card-location-row">${homeLoc}</div>
+                            ${streamNotes}
                             ${ticketsHtml}
                             ${ph}
+                            ${closeBtn}
                         </div>`;
                     
                     tc.appendChild(card);
@@ -1455,13 +1643,16 @@
                 document.getElementById('vNotes').value = '';
                 document.getElementById('vRequestedBy').value = '';
                 document.getElementById('vType').value = '';
+                document.getElementById('vLocation').value = 'On the Road';
                 document.getElementById('vHistory').value = '';
                 document.getElementById('historyList').innerHTML = '<div style="color:var(--text-muted);text-align:center;">New ticket - no history</div>';
-                d.style.display = 'none'; 
+                d.style.display = 'none';
+                document.getElementById('printBtn').style.display = 'none';
                 togglePartsFields();
             } else {
-                document.getElementById('modalTitle').innerText = "EDIT UNIT"; 
+                document.getElementById('modalTitle').innerText = "EDIT UNIT";
                 d.style.display = 'block';
+                document.getElementById('printBtn').style.display = 'block';
                 const v = fleetData.find(v => v.rowIndex === ri);
                 if (v) {
                     document.getElementById('targetRowIndex').value = v.rowIndex;
@@ -1471,7 +1662,7 @@
                     document.getElementById('vDate').value = v.date;
                     document.getElementById('vInspectionDate').value = v.inspectionDate || "";
                     document.getElementById('vShopStatus').value = v.shopStatus;
-                    document.getElementById('vLocation').value = v.location || "Dispatch Lot";
+                    document.getElementById('vLocation').value = v.location || "On the Road";
                     document.getElementById('vPartsOrdered').value = v.partsOrdered || "";
                     document.getElementById('vPartsEta').value = v.partsEta || "";
                     document.getElementById('vPriority').value = v.priority || "Normal";
@@ -1538,27 +1729,81 @@
             }
 
             const user = getUsername();
-            
-            const p = { 
-    action: m === 'edit' ? 'update' : 'add', 
-    rowIndex: oldRi, 
+
+            // Auto-uncheck "On the Road" when moving to a shop-related status
+            const shopStatuses = ['Ready for Pickup', 'Dispatched to Shop', 'Received', 'Assessment', 'Repair in Progress',
+                'Awaiting part order', 'Parts Received - Waiting for Technician', 'Ready for Delivery', 'Complete'];
+            let finalOnTheRoad = onTheRoad;
+            if (shopStatuses.includes(shopStatus) && shopStatus !== 'Reported') {
+                finalOnTheRoad = false;
+            }
+
+            const p = {
+    action: m === 'edit' ? 'update' : 'add',
+    rowIndex: oldRi,
     user: user,
-    id, status, issue, date, inspectionDate: document.getElementById('vInspectionDate').value, shopStatus, location, partsOrdered, partsEta, priority, homeLocation, notes, requestedBy, vehicleType, onTheRoad,  // ← ADD onTheRoad
+    id, status, issue, date, inspectionDate: document.getElementById('vInspectionDate').value, shopStatus, location, partsOrdered, partsEta, priority, homeLocation, notes, requestedBy, vehicleType, onTheRoad: finalOnTheRoad,
     history: JSON.stringify(historyArr)
 };
 
-            b.innerText = "SAVING…"; b.disabled = true; 
+            b.innerText = "SAVING…"; b.disabled = true;
+
+            // Statuses that should move the whole ticket (all items for this vehicle)
+            const bulkMoveStatuses = ['Received', 'Repair in Progress', 'Parts Received - Waiting for Technician', 'Dispatched to Shop', 'Ready for Delivery', 'Complete'];
+            const oldV = fleetData.find(v => v.rowIndex == oldRi);
+            const statusChanged = oldV && oldV.shopStatus !== shopStatus;
+            const shouldBulkMove = m === 'edit' && statusChanged && bulkMoveStatuses.includes(shopStatus);
+
+            // Save the current ticket first
             fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify(p) })
-                .then(() => { 
-                    closeModal(); 
-                    b.innerText = "SAVE"; 
-                    b.disabled = false; 
-                    showToast("✓ Saved by " + user); 
-                    setTimeout(fetchSheetData, 1000); 
+                .then(() => {
+                    // If bulk move needed, update sibling tickets too
+                    if (shouldBulkMove) {
+                        const siblings = fleetData.filter(v =>
+                            v.id.trim().toUpperCase() === id.trim().toUpperCase() &&
+                            v.rowIndex != oldRi
+                        );
+                        if (siblings.length > 0) {
+                            showToast(`⟳ Moving all ${siblings.length + 1} tickets for ${id}...`);
+                            const sibUpdates = siblings.map(sib => {
+                                let sibHist = parseHistory(sib.history);
+                                sibHist.push({ ts: Date.now(), user: user, action: 'Status', desc: `Bulk moved to ${shopStatus}` });
+                                return fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify({
+                                    action: 'update',
+                                    rowIndex: sib.rowIndex,
+                                    user: user,
+                                    id: sib.id,
+                                    status: sib.status,
+                                    issue: sib.issue,
+                                    date: sib.date,
+                                    inspectionDate: sib.inspectionDate || '',
+                                    shopStatus: shopStatus,
+                                    location: location,
+                                    partsOrdered: sib.partsOrdered || '',
+                                    partsEta: sib.partsEta || '',
+                                    priority: sib.priority || 'Normal',
+                                    homeLocation: sib.homeLocation || '',
+                                    notes: sib.notes || '',
+                                    requestedBy: sib.requestedBy || '',
+                                    vehicleType: sib.vehicleType || '',
+                                    onTheRoad: false,
+                                    history: JSON.stringify(sibHist)
+                                }) }).catch(err => console.error("Sibling update failed:", err));
+                            });
+                            return Promise.all(sibUpdates);
+                        }
+                    }
+                })
+                .then(() => {
+                    closeModal();
+                    b.innerText = "SAVE";
+                    b.disabled = false;
+                    showToast("✓ Saved by " + user);
+                    setTimeout(fetchSheetData, 1000);
                 })
                 .catch(err => {
                     console.error("Save failed:", err);
-                    b.innerText = "SAVE"; 
+                    b.innerText = "SAVE";
                     b.disabled = false;
                     showToast("❌ Failed to save - check connection");
                 });
@@ -1585,6 +1830,207 @@
                 }); 
         }
 
+        // ==================== CLOSE & RETURN TO ROAD ====================
+        function closeAndReturnToRoad(rowIndexes) {
+            if (!confirm('Close this ticket and return vehicle to "On the Road"?')) return;
+            const user = getUsername();
+            showToast('⟳ Closing ticket and returning to road...');
+
+            const updates = rowIndexes.map(idx => {
+                const v = fleetData.find(f => f.rowIndex === idx);
+                if (!v) return Promise.resolve();
+
+                let hist = parseHistory(v.history);
+                hist.push({ ts: Date.now(), user: user, action: 'Closed', desc: 'Ticket closed, returned to On the Road' });
+
+                const payload = {
+                    action: 'update',
+                    rowIndex: v.rowIndex,
+                    user: user,
+                    id: v.id,
+                    status: 'Operational',
+                    issue: v.issue,
+                    date: v.date,
+                    inspectionDate: v.inspectionDate || '',
+                    shopStatus: 'Reported',
+                    location: 'On the Road',
+                    partsOrdered: '',
+                    partsEta: '',
+                    priority: 'Normal',
+                    homeLocation: v.homeLocation || '',
+                    notes: '',
+                    requestedBy: '',
+                    vehicleType: v.vehicleType || '',
+                    onTheRoad: true,
+                    history: JSON.stringify(hist)
+                };
+                return fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify(payload) })
+                    .catch(err => {
+                        console.error("Close failed:", err);
+                        showToast("❌ Failed to close - check connection");
+                    });
+            });
+
+            Promise.all(updates).then(() => {
+                showToast(`✓ Ticket closed, vehicle on the road — ${user}`);
+                setTimeout(fetchSheetData, 800);
+            });
+            renderBoard();
+        }
+
+        // ==================== BULK STATUS UPDATE (MOVE WHOLE TICKET) ====================
+        function bulkUpdateStatus(vehicleId, newStatus, newLocation) {
+            const user = getUsername();
+            const tickets = fleetData.filter(v => v.id.trim().toUpperCase() === vehicleId.trim().toUpperCase());
+            if (!tickets.length) return;
+
+            showToast(`⟳ Moving all ${tickets.length} tickets for ${vehicleId}...`);
+
+            const updates = tickets.map(v => {
+                let hist = parseHistory(v.history);
+                hist.push({ ts: Date.now(), user: user, action: 'Status', desc: `Bulk changed to ${newStatus}` });
+
+                const payload = {
+                    action: 'update',
+                    rowIndex: v.rowIndex,
+                    user: user,
+                    id: v.id,
+                    status: v.status,
+                    issue: v.issue,
+                    date: v.date,
+                    inspectionDate: v.inspectionDate || '',
+                    shopStatus: newStatus,
+                    location: newLocation || v.location,
+                    partsOrdered: v.partsOrdered || '',
+                    partsEta: v.partsEta || '',
+                    priority: v.priority || 'Normal',
+                    homeLocation: v.homeLocation || '',
+                    notes: v.notes || '',
+                    requestedBy: v.requestedBy || '',
+                    vehicleType: v.vehicleType || '',
+                    onTheRoad: false,
+                    history: JSON.stringify(hist)
+                };
+                return fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify(payload) })
+                    .catch(err => console.error("Bulk update failed:", err));
+            });
+
+            Promise.all(updates).then(() => {
+                showToast(`✓ All tickets for ${vehicleId} moved to ${newStatus}`);
+                setTimeout(fetchSheetData, 800);
+            });
+            renderBoard();
+        }
+
+        // ==================== PRINTABLE SERVICE TICKET ====================
+        function printServiceTicket(rowIndex) {
+            const v = fleetData.find(f => f.rowIndex === rowIndex);
+            if (!v) { showToast('❌ Vehicle not found'); return; }
+            showPrintPreview(v);
+        }
+
+        function printServiceTicketFromSearch() {
+            const search = document.getElementById('searchInput').value.trim();
+            if (!search) {
+                showToast('Enter a Vehicle ID in the search bar first');
+                return;
+            }
+            const matches = fleetData.filter(v => v.id.toLowerCase().includes(search.toLowerCase()));
+            if (!matches.length) {
+                showToast('❌ No vehicles found for "' + search + '"');
+                return;
+            }
+            // Group by vehicle ID and print all tickets for that vehicle
+            const id = matches[0].id;
+            const allTickets = fleetData.filter(v => v.id.trim().toUpperCase() === id.trim().toUpperCase());
+            showPrintPreview(allTickets[0], allTickets);
+        }
+
+        function showPrintPreview(vehicle, allTickets) {
+            const tickets = allTickets || [vehicle];
+            document.querySelectorAll('.print-overlay').forEach(e => e.remove());
+
+            const overlay = document.createElement('div');
+            overlay.className = 'print-overlay';
+
+            let ticketRows = tickets.map(t => `
+                <tr>
+                    <td>${escapeHtml(t.issue)}</td>
+                    <td>${t.shopStatus || ''}</td>
+                    <td>${formatDate(t.date)}</td>
+                    <td>${t.requestedBy || ''}</td>
+                    <td>${t.priority || 'Normal'}</td>
+                </tr>
+            `).join('');
+
+            let historyRows = '';
+            const hist = parseHistory(vehicle.history);
+            if (hist.length) {
+                const sorted = [...hist].sort((a, b) => b.ts - a.ts);
+                historyRows = sorted.map(h => {
+                    const d = new Date(h.ts);
+                    return `<tr><td>${d.toLocaleDateString()} ${d.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}</td><td>${h.user}</td><td>${h.desc}</td></tr>`;
+                }).join('');
+            }
+
+            const allNotes = tickets.map(t => t.notes).filter(n => n && n.trim());
+            const notesHtml = allNotes.length ? allNotes.join('\n---\n') : '(No notes)';
+
+            overlay.innerHTML = `
+                <div style="width:100%;">
+                    <div class="print-actions">
+                        <button class="btn-primary" onclick="window.print()">🖨 Print</button>
+                        <button class="btn-outline" onclick="this.closest('.print-overlay').remove()">✕ Close</button>
+                    </div>
+                    <div class="print-ticket">
+                        <h2>Service Ticket — ${escapeHtml(vehicle.id)}</h2>
+                        <div class="pt-row">
+                            <div class="pt-field"><div class="pt-label">Vehicle ID</div><div class="pt-value">${escapeHtml(vehicle.id)}</div></div>
+                            <div class="pt-field"><div class="pt-label">Vehicle Type</div><div class="pt-value">${vehicle.vehicleType || '—'}</div></div>
+                            <div class="pt-field"><div class="pt-label">Condition</div><div class="pt-value">${vehicle.status || '—'}</div></div>
+                        </div>
+                        <div class="pt-row">
+                            <div class="pt-field"><div class="pt-label">Location</div><div class="pt-value">${vehicle.location || 'On the Road'}</div></div>
+                            <div class="pt-field"><div class="pt-label">Home Location</div><div class="pt-value">${vehicle.homeLocation || '—'}</div></div>
+                            <div class="pt-field"><div class="pt-label">Priority</div><div class="pt-value">${vehicle.priority || 'Normal'}</div></div>
+                        </div>
+                        <div class="pt-row">
+                            <div class="pt-field"><div class="pt-label">Date In</div><div class="pt-value">${formatDate(vehicle.date)}</div></div>
+                            <div class="pt-field"><div class="pt-label">Ridesource Inspection</div><div class="pt-value">${vehicle.inspectionDate ? formatDate(vehicle.inspectionDate) : '—'}</div></div>
+                            <div class="pt-field"><div class="pt-label">Parts ETA</div><div class="pt-value">${vehicle.partsEta ? formatDate(vehicle.partsEta) : '—'}</div></div>
+                        </div>
+                        <div style="margin-top:1rem;">
+                            <div class="pt-label" style="margin-bottom:0.3rem;">Work Items (${tickets.length})</div>
+                            <table style="width:100%;border-collapse:collapse;">
+                                <thead><tr style="border-bottom:2px solid #333;">
+                                    <th style="text-align:left;padding:4px 8px;font-size:0.7rem;text-transform:uppercase;color:#666;">Issue</th>
+                                    <th style="text-align:left;padding:4px 8px;font-size:0.7rem;text-transform:uppercase;color:#666;">Status</th>
+                                    <th style="text-align:left;padding:4px 8px;font-size:0.7rem;text-transform:uppercase;color:#666;">Date</th>
+                                    <th style="text-align:left;padding:4px 8px;font-size:0.7rem;text-transform:uppercase;color:#666;">Requested By</th>
+                                    <th style="text-align:left;padding:4px 8px;font-size:0.7rem;text-transform:uppercase;color:#666;">Priority</th>
+                                </tr></thead>
+                                <tbody>${ticketRows}</tbody>
+                            </table>
+                        </div>
+                        <div style="margin-top:1rem;">
+                            <div class="pt-label" style="margin-bottom:0.3rem;">Notes</div>
+                            <div class="pt-notes">${escapeHtml(notesHtml)}</div>
+                        </div>
+                        ${historyRows ? `
+                        <div class="pt-history">
+                            <div class="pt-label" style="margin-bottom:0.3rem;margin-top:1rem;">Activity Log</div>
+                            <table><thead><tr><th>Date/Time</th><th>User</th><th>Action</th></tr></thead><tbody>${historyRows}</tbody></table>
+                        </div>` : ''}
+                        <div style="margin-top:2rem;border-top:1px solid #ddd;padding-top:0.5rem;display:flex;justify-content:space-between;font-size:0.7rem;color:#999;">
+                            <span>Printed: ${new Date().toLocaleString()}</span>
+                            <span>Repair Tracker</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(overlay);
+        }
+
         // ==================== BULLETIN ====================
         let bulletinMessages = [];
         function loadBulletin() { try { bulletinMessages = JSON.parse(localStorage.getItem('dlx_bulletin_messages')) || []; } catch { bulletinMessages = []; } const sa = localStorage.getItem('dlx_bulletin_author'); if (sa) document.getElementById('msgAuthor').value = sa; renderBulletin(); updateBadge(); }
@@ -1604,7 +2050,7 @@
         function showToast(msg) { document.querySelectorAll('.toast').forEach(e => e.remove()); const t = document.createElement('div'); t.className = 'toast'; t.textContent = msg; document.body.appendChild(t); setTimeout(() => t.remove(), 3000); }
         function toggleTheme() { document.body.classList.toggle('light-mode'); }
         function toggleWallboardMode() { document.body.classList.toggle('wallboard-mode'); }
-        document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeModal(); if (document.getElementById('bulletinPanel').classList.contains('open')) toggleBulletin(); } });
+        document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeModal(); document.querySelectorAll('.print-overlay').forEach(el => el.remove()); if (document.getElementById('bulletinPanel').classList.contains('open')) toggleBulletin(); } });
 
         initSwiperDots();
         fetchSheetData(); setInterval(fetchSheetData, 30000); loadBulletin();
