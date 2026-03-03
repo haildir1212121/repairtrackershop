@@ -1567,7 +1567,7 @@
                             </div>
                             <div class="card-location-row">${homeLoc}</div>
                             ${streamNotes}
-                            ${ticketsHtml}
+                            ${colKey !== 'on_the_road' ? ticketsHtml : ''}
                             ${ph}
                             ${closeBtn}
                         </div>`;
@@ -1852,7 +1852,7 @@
                     issue: '',
                     date: new Date().toISOString().split('T')[0],
                     inspectionDate: v.inspectionDate || '',
-                    shopStatus: 'Reported',
+                    shopStatus: 'Complete',
                     location: 'On the Road',
                     partsOrdered: '',
                     partsEta: '',
