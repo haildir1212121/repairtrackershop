@@ -1867,7 +1867,7 @@
                 .then(() => {
                     showToast('✓ Ticket created – vehicle moved to Repair Complaints');
                     closeAddTicketModal();
-                    loadData();
+                    fetchSheetData();
                 })
                 .catch(err => showToast('✗ Network error: ' + err.message))
                 .finally(() => { btn.textContent = 'CREATE TICKET'; btn.disabled = false; });
