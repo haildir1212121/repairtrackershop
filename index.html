@@ -696,6 +696,7 @@
             <input type="text" id="searchInput" class="search-input" placeholder="Search unit…" onkeyup="renderBoard()">
             <button class="btn-collapse" onclick="toggleGlobalCollapse()">⊟ COLLAPSE ALL</button>
             <button class="btn-primary" onclick="openModal('add')">+ Add Unit</button>
+            <button class="btn-primary" style="background:var(--c-intake);" onclick="openAddTicketModal()">+ Add Ticket</button>
             <button class="btn-bulletin" id="bulletinToggle" onclick="toggleBulletin()">📌 Board <span class="badge-count" id="msgCount" style="display:none">0</span></button>
             <button class="btn-outline" onclick="toggleTheme()">◑ Theme</button>
             <button class="btn-outline" onclick="toggleWallboardMode()">▣ Wall</button>
@@ -818,6 +819,48 @@
         <div class="bulletin-feed" id="bulletinFeed"></div>
     </div>
     
+    <div id="addTicketModal" class="modal-overlay" onclick="if(event.target===this)closeAddTicketModal()">
+        <div class="modal-content" style="max-width:500px;">
+            <h2 style="color:var(--c-intake);">ADD TICKET</h2>
+            <p style="color:var(--text-muted);font-size:0.8rem;margin-bottom:1rem;">Select a vehicle currently On the Road to create a new repair ticket.</p>
+            <div class="form-group" style="background:rgba(255,255,255,0.03); padding:0.5rem; border-radius:6px;">
+                <label style="color:var(--c-shop);">Who are you? (For Logs)</label>
+                <input type="text" id="ticketUser" placeholder="Enter your name..." required>
+            </div>
+            <div class="form-group">
+                <label>Vehicle</label>
+                <select id="ticketVehicleSelect" onchange="onTicketVehicleSelect()">
+                    <option value="">Select a vehicle…</option>
+                </select>
+            </div>
+            <div id="ticketVehicleInfo" style="display:none; background:rgba(255,255,255,0.03); padding:0.75rem; border-radius:6px; margin-bottom:1rem; font-size:0.8rem;">
+                <div style="display:flex;gap:1rem;flex-wrap:wrap;color:var(--text-muted);">
+                    <span id="tvType"></span>
+                    <span id="tvHome"></span>
+                    <span id="tvCondition"></span>
+                    <span id="tvInspection"></span>
+                </div>
+            </div>
+            <div class="form-group"><label>Issue / Complaint</label><input type="text" id="ticketIssue" required placeholder="Describe the issue…"></div>
+            <div class="form-row">
+                <div class="form-group"><label>Priority</label>
+                    <select id="ticketPriority">
+                        <option value="Urgent">🔴 Urgent</option>
+                        <option value="High">⚠ High</option>
+                        <option value="Oil Change / Bulb Replacement">🔧 Oil Change / Bulb</option>
+                        <option value="Normal" selected>Normal Priority</option>
+                    </select>
+                </div>
+                <div class="form-group"><label>Requested By</label><input type="text" id="ticketRequestedBy" placeholder="Dispatcher Name"></div>
+            </div>
+            <div class="form-group"><label>Notes</label><textarea id="ticketNotes" rows="2" placeholder="Optional notes…"></textarea></div>
+            <div class="form-actions">
+                <button type="button" class="btn-outline" onclick="closeAddTicketModal()">CANCEL</button>
+                <button type="button" class="btn-primary" id="createTicketBtn" onclick="createTicketForVehicle()">CREATE TICKET</button>
+            </div>
+        </div>
+    </div>
+
     <div id="entryModal" class="modal-overlay" onclick="if(event.target===this)closeModal()">
         <div class="modal-content">
             <h2 id="modalTitle">EDIT UNIT</h2>
@@ -1438,10 +1481,13 @@
                     }
 
                     const cc = v.status === 'Down' ? 'cond-down' : v.status === 'Warning' ? 'cond-warning' : 'cond-operational';
-                    
-                    const days = daysElapsed(v.date); 
+
                     let db = '';
-                    if (days !== null && v.shopStatus !== "Complete") db = `<span class="days-badge ${days > 14 ? 'crit' : days > 7 ? 'warn' : ''}">${days}d</span>`;
+                    if (v.inspectionDate) {
+                        const rd = new Date(v.inspectionDate + 'T00:00:00');
+                        const rdStr = rd.toLocaleDateString('en-US', {month:'short', day:'numeric'});
+                        db = `<span class="days-badge" style="background:rgba(167,139,250,0.15);color:#a78bfa;">🚐 ${rdStr}</span>`;
+                    }
 
                     const homeLoc = v.homeLocation ? `<span class="card-location">🏠 ${v.homeLocation}</span>` : '';
 
@@ -1493,14 +1539,7 @@
                     
                     let countBadge = v.tickets.length > 1 ? `<span class="multi-tag">${v.tickets.length} Tickets</span>` : '';
 
-                    // Add inspection date badge for on_the_road column
-                    let inspectionBadge = '';
-                    if (colKey === 'on_the_road' && v.inspectionDate) {
-                        const daysUntil = Math.ceil((new Date(v.inspectionDate) - new Date()) / (1000 * 60 * 60 * 24));
-                        inspectionBadge = `<span class="inspection-date-badge" style="background:rgba(167,139,250,0.15);color:#a78bfa;">${v.inspectionDate} (${daysUntil}d)</span>`;
-                    }
-
-                    // Ridesource date between status & location
+                    // Ridesource date between status & location (in card body)
                     let ridesDateHtml = '';
                     if (v.inspectionDate) {
                         const rd = new Date(v.inspectionDate + 'T00:00:00');
@@ -1547,7 +1586,6 @@
                                 <span class="card-condition ${cc}">${v.status || ''}</span>
                                 ${prioBadge}
                                 ${db}
-                                ${inspectionBadge}
                                 ${collapsedStatus}
                             </div>
                             <div class="card-right">
@@ -1691,6 +1729,154 @@
             }
         }
         function closeModal() { document.getElementById('entryModal').style.display = 'none'; }
+
+        // ==================== ADD TICKET MODAL ====================
+        function openAddTicketModal() {
+            const modal = document.getElementById('addTicketModal');
+            modal.style.display = 'flex';
+
+            // Pre-fill username
+            const storedUser = localStorage.getItem('dlx_username');
+            if (storedUser) document.getElementById('ticketUser').value = storedUser;
+
+            // Populate vehicle dropdown with on-the-road vehicles
+            const select = document.getElementById('ticketVehicleSelect');
+            select.innerHTML = '<option value="">Select a vehicle…</option>';
+
+            // Get unique on-the-road vehicles
+            const onRoadMap = {};
+            fleetData.forEach(v => {
+                if (!v.id || v.onTheRoad !== true) return;
+                const idKey = v.id.trim().toUpperCase();
+                if (!onRoadMap[idKey]) onRoadMap[idKey] = v;
+            });
+
+            Object.values(onRoadMap).sort((a, b) => a.id.localeCompare(b.id)).forEach(v => {
+                const opt = document.createElement('option');
+                opt.value = v.id.trim().toUpperCase();
+                const typeLabel = v.vehicleType ? ` (${v.vehicleType})` : '';
+                opt.textContent = `${v.id}${typeLabel}`;
+                select.appendChild(opt);
+            });
+
+            // Reset fields
+            document.getElementById('ticketIssue').value = '';
+            document.getElementById('ticketPriority').value = 'Normal';
+            document.getElementById('ticketRequestedBy').value = '';
+            document.getElementById('ticketNotes').value = '';
+            document.getElementById('ticketVehicleInfo').style.display = 'none';
+        }
+
+        function closeAddTicketModal() {
+            document.getElementById('addTicketModal').style.display = 'none';
+        }
+
+        function onTicketVehicleSelect() {
+            const idKey = document.getElementById('ticketVehicleSelect').value;
+            const info = document.getElementById('ticketVehicleInfo');
+            if (!idKey) { info.style.display = 'none'; return; }
+
+            const v = fleetData.find(f => f.id.trim().toUpperCase() === idKey && f.onTheRoad === true);
+            if (!v) { info.style.display = 'none'; return; }
+
+            info.style.display = 'block';
+            document.getElementById('tvType').textContent = v.vehicleType ? `🚗 ${v.vehicleType}` : '';
+            document.getElementById('tvHome').textContent = v.homeLocation ? `🏠 ${v.homeLocation}` : '';
+            document.getElementById('tvCondition').textContent = `⚙ ${v.status || 'Operational'}`;
+            document.getElementById('tvInspection').textContent = v.inspectionDate ? `🚐 Insp: ${v.inspectionDate}` : '';
+        }
+
+        function createTicketForVehicle() {
+            const idKey = document.getElementById('ticketVehicleSelect').value;
+            if (!idKey) { showToast('⚠ Please select a vehicle.'); return; }
+
+            const issue = document.getElementById('ticketIssue').value.trim();
+            if (!issue) { showToast('⚠ Please enter an issue.'); return; }
+
+            const userName = document.getElementById('ticketUser').value.trim();
+            if (!userName) { showToast('⚠ Please enter your name.'); return; }
+            localStorage.setItem('dlx_username', userName);
+
+            const v = fleetData.find(f => f.id.trim().toUpperCase() === idKey && f.onTheRoad === true);
+            if (!v) { showToast('⚠ Vehicle not found.'); return; }
+
+            const priority = document.getElementById('ticketPriority').value;
+            const requestedBy = document.getElementById('ticketRequestedBy').value.trim();
+            const notes = document.getElementById('ticketNotes').value.trim();
+            const today = new Date().toISOString().split('T')[0];
+
+            const historyArr = [createLogEntry('Created', 'Ticket created via Add Ticket')];
+
+            const btn = document.getElementById('createTicketBtn');
+            btn.textContent = 'CREATING…';
+            btn.disabled = true;
+
+            const payload = {
+                action: 'add',
+                user: userName,
+                id: v.id,
+                status: v.status || 'Operational',
+                issue: issue,
+                date: today,
+                inspectionDate: v.inspectionDate || '',
+                shopStatus: 'Reported',
+                location: v.location || 'On the Road',
+                partsOrdered: '',
+                partsEta: '',
+                priority: priority,
+                homeLocation: v.homeLocation || '',
+                notes: notes,
+                requestedBy: requestedBy,
+                vehicleType: v.vehicleType || '',
+                onTheRoad: false,
+                history: JSON.stringify(historyArr)
+            };
+
+            // Also update all existing on-the-road rows for this vehicle to clear onTheRoad
+            const siblings = fleetData.filter(f => f.id.trim().toUpperCase() === idKey && f.onTheRoad === true);
+            const siblingUpdates = siblings.map(sib => {
+                const sibPayload = {
+                    action: 'update',
+                    rowIndex: sib.rowIndex,
+                    user: userName,
+                    id: sib.id,
+                    status: sib.status,
+                    issue: sib.issue,
+                    date: sib.date,
+                    inspectionDate: sib.inspectionDate || '',
+                    shopStatus: sib.shopStatus || 'Reported',
+                    location: sib.location || 'On the Road',
+                    partsOrdered: sib.partsOrdered || '',
+                    partsEta: sib.partsEta || '',
+                    priority: sib.priority || 'Normal',
+                    homeLocation: sib.homeLocation || '',
+                    notes: sib.notes || '',
+                    requestedBy: sib.requestedBy || '',
+                    vehicleType: sib.vehicleType || '',
+                    onTheRoad: false,
+                    history: sib.history || '[]'
+                };
+                return fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(sibPayload) }).then(r => r.json());
+            });
+
+            // Create the new ticket + update siblings in parallel
+            Promise.all([
+                fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) }).then(r => r.json()),
+                ...siblingUpdates
+            ])
+                .then(results => {
+                    const mainRes = results[0];
+                    if (mainRes.result === 'success') {
+                        showToast('✓ Ticket created – vehicle moved to Repair Complaints');
+                        closeAddTicketModal();
+                        loadData();
+                    } else {
+                        showToast('✗ Error: ' + (mainRes.error || 'Unknown'));
+                    }
+                })
+                .catch(err => showToast('✗ Network error: ' + err.message))
+                .finally(() => { btn.textContent = 'CREATE TICKET'; btn.disabled = false; });
+        }
         
         function saveVehicle(e) { 
             e.preventDefault(); 
