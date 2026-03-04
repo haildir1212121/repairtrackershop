@@ -822,16 +822,15 @@
     <div id="addTicketModal" class="modal-overlay" onclick="if(event.target===this)closeAddTicketModal()">
         <div class="modal-content" style="max-width:500px;">
             <h2 style="color:var(--c-intake);">ADD TICKET</h2>
-            <p style="color:var(--text-muted);font-size:0.8rem;margin-bottom:1rem;">Select a vehicle currently On the Road to create a new repair ticket.</p>
+            <p style="color:var(--text-muted);font-size:0.8rem;margin-bottom:1rem;">Enter a vehicle ID to create a new repair ticket.</p>
             <div class="form-group" style="background:rgba(255,255,255,0.03); padding:0.5rem; border-radius:6px;">
                 <label style="color:var(--c-shop);">Who are you? (For Logs)</label>
                 <input type="text" id="ticketUser" placeholder="Enter your name..." required>
             </div>
             <div class="form-group">
-                <label>Vehicle</label>
-                <select id="ticketVehicleSelect" onchange="onTicketVehicleSelect()">
-                    <option value="">Select a vehicle…</option>
-                </select>
+                <label>Vehicle ID</label>
+                <input type="text" id="ticketVehicleInput" list="ticketVehicleList" placeholder="Type or select vehicle ID…" oninput="onTicketVehicleInput()" required>
+                <datalist id="ticketVehicleList"></datalist>
             </div>
             <div id="ticketVehicleInfo" style="display:none; background:rgba(255,255,255,0.03); padding:0.75rem; border-radius:6px; margin-bottom:1rem; font-size:0.8rem;">
                 <div style="display:flex;gap:1rem;flex-wrap:wrap;color:var(--text-muted);">
@@ -1739,27 +1738,26 @@
             const storedUser = localStorage.getItem('dlx_username');
             if (storedUser) document.getElementById('ticketUser').value = storedUser;
 
-            // Populate vehicle dropdown with on-the-road vehicles
-            const select = document.getElementById('ticketVehicleSelect');
-            select.innerHTML = '<option value="">Select a vehicle…</option>';
+            // Populate datalist with on-the-road vehicles as suggestions
+            const datalist = document.getElementById('ticketVehicleList');
+            datalist.innerHTML = '';
 
-            // Get unique on-the-road vehicles
-            const onRoadMap = {};
+            const seen = new Set();
             fleetData.forEach(v => {
-                if (!v.id || v.onTheRoad !== true) return;
+                if (!v.id) return;
                 const idKey = v.id.trim().toUpperCase();
-                if (!onRoadMap[idKey]) onRoadMap[idKey] = v;
-            });
-
-            Object.values(onRoadMap).sort((a, b) => a.id.localeCompare(b.id)).forEach(v => {
+                if (seen.has(idKey)) return;
+                seen.add(idKey);
                 const opt = document.createElement('option');
-                opt.value = v.id.trim().toUpperCase();
                 const typeLabel = v.vehicleType ? ` (${v.vehicleType})` : '';
-                opt.textContent = `${v.id}${typeLabel}`;
-                select.appendChild(opt);
+                const roadLabel = v.onTheRoad ? ' — On the Road' : '';
+                opt.value = v.id.trim();
+                opt.label = `${v.id}${typeLabel}${roadLabel}`;
+                datalist.appendChild(opt);
             });
 
             // Reset fields
+            document.getElementById('ticketVehicleInput').value = '';
             document.getElementById('ticketIssue').value = '';
             document.getElementById('ticketPriority').value = 'Normal';
             document.getElementById('ticketRequestedBy').value = '';
@@ -1771,12 +1769,13 @@
             document.getElementById('addTicketModal').style.display = 'none';
         }
 
-        function onTicketVehicleSelect() {
-            const idKey = document.getElementById('ticketVehicleSelect').value;
+        function onTicketVehicleInput() {
+            const rawId = document.getElementById('ticketVehicleInput').value.trim();
             const info = document.getElementById('ticketVehicleInfo');
-            if (!idKey) { info.style.display = 'none'; return; }
+            if (!rawId) { info.style.display = 'none'; return; }
 
-            const v = fleetData.find(f => f.id.trim().toUpperCase() === idKey && f.onTheRoad === true);
+            const idKey = rawId.toUpperCase();
+            const v = fleetData.find(f => f.id.trim().toUpperCase() === idKey);
             if (!v) { info.style.display = 'none'; return; }
 
             info.style.display = 'block';
@@ -1787,8 +1786,8 @@
         }
 
         function createTicketForVehicle() {
-            const idKey = document.getElementById('ticketVehicleSelect').value;
-            if (!idKey) { showToast('⚠ Please select a vehicle.'); return; }
+            const rawId = document.getElementById('ticketVehicleInput').value.trim();
+            if (!rawId) { showToast('⚠ Please enter a vehicle ID.'); return; }
 
             const issue = document.getElementById('ticketIssue').value.trim();
             if (!issue) { showToast('⚠ Please enter an issue.'); return; }
@@ -1797,8 +1796,9 @@
             if (!userName) { showToast('⚠ Please enter your name.'); return; }
             localStorage.setItem('dlx_username', userName);
 
-            const v = fleetData.find(f => f.id.trim().toUpperCase() === idKey && f.onTheRoad === true);
-            if (!v) { showToast('⚠ Vehicle not found.'); return; }
+            const idKey = rawId.toUpperCase();
+            // Look up existing vehicle data if it exists
+            const existing = fleetData.find(f => f.id.trim().toUpperCase() === idKey);
 
             const priority = document.getElementById('ticketPriority').value;
             const requestedBy = document.getElementById('ticketRequestedBy').value.trim();
@@ -1814,20 +1814,20 @@
             const payload = {
                 action: 'add',
                 user: userName,
-                id: v.id,
-                status: v.status || 'Operational',
+                id: existing ? existing.id : rawId,
+                status: existing ? existing.status : 'Operational',
                 issue: issue,
                 date: today,
-                inspectionDate: v.inspectionDate || '',
+                inspectionDate: existing ? (existing.inspectionDate || '') : '',
                 shopStatus: 'Reported',
-                location: v.location || 'On the Road',
+                location: existing ? (existing.location || 'On the Road') : 'On the Road',
                 partsOrdered: '',
                 partsEta: '',
                 priority: priority,
-                homeLocation: v.homeLocation || '',
+                homeLocation: existing ? (existing.homeLocation || '') : '',
                 notes: notes,
                 requestedBy: requestedBy,
-                vehicleType: v.vehicleType || '',
+                vehicleType: existing ? (existing.vehicleType || '') : '',
                 onTheRoad: false,
                 history: JSON.stringify(historyArr)
             };
@@ -1856,23 +1856,18 @@
                     onTheRoad: false,
                     history: sib.history || '[]'
                 };
-                return fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(sibPayload) }).then(r => r.json());
+                return fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(sibPayload) });
             });
 
             // Create the new ticket + update siblings in parallel
             Promise.all([
-                fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) }).then(r => r.json()),
+                fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) }),
                 ...siblingUpdates
             ])
-                .then(results => {
-                    const mainRes = results[0];
-                    if (mainRes.result === 'success') {
-                        showToast('✓ Ticket created – vehicle moved to Repair Complaints');
-                        closeAddTicketModal();
-                        loadData();
-                    } else {
-                        showToast('✗ Error: ' + (mainRes.error || 'Unknown'));
-                    }
+                .then(() => {
+                    showToast('✓ Ticket created – vehicle moved to Repair Complaints');
+                    closeAddTicketModal();
+                    loadData();
                 })
                 .catch(err => showToast('✗ Network error: ' + err.message))
                 .finally(() => { btn.textContent = 'CREATE TICKET'; btn.disabled = false; });
