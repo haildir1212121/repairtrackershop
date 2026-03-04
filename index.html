@@ -1800,6 +1800,9 @@
             // Look up existing vehicle data if it exists
             const existing = fleetData.find(f => f.id.trim().toUpperCase() === idKey);
 
+            // Check if there's an active (non-on-the-road) ticket already in a shop column
+            const activeTicket = fleetData.find(f => f.id.trim().toUpperCase() === idKey && f.onTheRoad !== true && f.shopStatus && f.shopStatus !== 'Complete');
+
             const priority = document.getElementById('ticketPriority').value;
             const requestedBy = document.getElementById('ticketRequestedBy').value.trim();
             const notes = document.getElementById('ticketNotes').value.trim();
@@ -1811,6 +1814,9 @@
             btn.textContent = 'CREATING…';
             btn.disabled = true;
 
+            // If there's an active ticket, match its shopStatus so they merge in the same column
+            const newShopStatus = activeTicket ? activeTicket.shopStatus : 'Reported';
+
             const payload = {
                 action: 'add',
                 user: userName,
@@ -1819,8 +1825,8 @@
                 issue: issue,
                 date: today,
                 inspectionDate: existing ? (existing.inspectionDate || '') : '',
-                shopStatus: 'Reported',
-                location: existing ? (existing.location || 'On the Road') : 'On the Road',
+                shopStatus: newShopStatus,
+                location: activeTicket ? (activeTicket.location || existing?.location || 'On the Road') : (existing ? (existing.location || 'On the Road') : 'On the Road'),
                 partsOrdered: '',
                 partsEta: '',
                 priority: priority,
@@ -1865,7 +1871,7 @@
                 ...siblingUpdates
             ])
                 .then(() => {
-                    showToast('✓ Ticket created – vehicle moved to Repair Complaints');
+                    showToast(activeTicket ? `✓ Ticket created – merged with existing ticket in ${newShopStatus}` : '✓ Ticket created – vehicle moved to Repair Complaints');
                     closeAddTicketModal();
                     fetchSheetData();
                 })
@@ -1931,11 +1937,10 @@
 
             b.innerText = "SAVING…"; b.disabled = true;
 
-            // Statuses that should move the whole ticket (all items for this vehicle)
-            const bulkMoveStatuses = ['Received', 'Repair in Progress', 'Parts Received - Waiting for Technician', 'Dispatched to Shop', 'Ready for Delivery', 'Complete'];
+            // Always move all tickets for a vehicle together when status changes
             const oldV = fleetData.find(v => v.rowIndex == oldRi);
             const statusChanged = oldV && oldV.shopStatus !== shopStatus;
-            const shouldBulkMove = m === 'edit' && statusChanged && bulkMoveStatuses.includes(shopStatus);
+            const shouldBulkMove = m === 'edit' && statusChanged;
 
             // Save the current ticket first
             fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify(p) })
