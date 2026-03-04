@@ -205,8 +205,6 @@
         .parts-row { display: flex; justify-content: space-between; align-items: center; } .parts-row + .parts-row { margin-top: 2px; }
         .parts-label { font-family: 'JetBrains Mono', monospace; color: var(--text-muted); text-transform: uppercase; font-size: 0.6rem; font-weight: 700; letter-spacing: 0.5px; }
         .parts-val { font-family: 'JetBrains Mono', monospace; color: var(--text-main); font-weight: 700; font-size: 0.75rem; } .parts-val.eta { color: var(--c-parts); }
-        .days-badge { font-family: 'JetBrains Mono', monospace; font-size: 0.6rem; font-weight: 700; padding: 1px 5px; border-radius: 3px; background: rgba(255,255,255,0.05); color: var(--text-muted); }
-        .days-badge.warn { background: rgba(251,146,60,0.15); color: var(--c-parts); } .days-badge.crit { background: rgba(248,113,113,0.15); color: #f87171; }
         .card-notes { margin-top: 0.6rem; padding: 0.5rem; background: rgba(255,255,255,0.04); border-radius: 4px; font-size: 0.75rem; color: #a1a1aa; font-style: italic; border-left: 2px solid var(--text-muted); }
         body.light-mode .card-notes { background: rgba(0,0,0,0.04); color: #555; }
 
@@ -1482,11 +1480,6 @@
                     const cc = v.status === 'Down' ? 'cond-down' : v.status === 'Warning' ? 'cond-warning' : 'cond-operational';
 
                     let db = '';
-                    if (v.inspectionDate) {
-                        const rd = new Date(v.inspectionDate + 'T00:00:00');
-                        const rdStr = rd.toLocaleDateString('en-US', {month:'short', day:'numeric'});
-                        db = `<span class="days-badge" style="background:rgba(167,139,250,0.15);color:#a78bfa;">🚐 ${rdStr}</span>`;
-                    }
 
                     const homeLoc = v.homeLocation ? `<span class="card-location">🏠 ${v.homeLocation}</span>` : '';
 
@@ -1543,7 +1536,7 @@
                     if (v.inspectionDate) {
                         const rd = new Date(v.inspectionDate + 'T00:00:00');
                         const rdStr = rd.toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'});
-                        ridesDateHtml = `<span class="card-rides-date">🚐 Rides: ${rdStr}</span>`;
+                        ridesDateHtml = `<span class="card-rides-date">🚐 RS due: ${rdStr}</span>`;
                     }
 
                     // Location class for LTD styling
